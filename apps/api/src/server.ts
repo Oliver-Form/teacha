@@ -1,6 +1,6 @@
 import Fastify, { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { userRoutes } from './routes/users'
+import path from 'path'
 
 // Environment configuration schema
 const envSchema = z.object({
@@ -41,21 +41,10 @@ fastify.options('*', async (request, reply) => {
   reply.send()
 })
 
-// Health check route
-fastify.get('/health', async (request, reply) => {
-  return { 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    environment: env.NODE_ENV 
-  }
-})
-
-// Register API routes
-fastify.register(userRoutes, { prefix: '/api' })
-
-// Basic hello route
-fastify.get('/api/hello', async (request, reply) => {
-  return { message: 'Hello from Fastify API!' }
+// Register autoload for routes
+fastify.register(import('@fastify/autoload'), {
+  dir: path.join(__dirname, 'routes'),
+  options: {}
 })
 
 // Error handler

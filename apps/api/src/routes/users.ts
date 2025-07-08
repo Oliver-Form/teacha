@@ -12,9 +12,9 @@ const getUserParamsSchema = z.object({
   id: z.string().min(1),
 })
 
-export async function userRoutes(fastify: FastifyInstance) {
+export default async function (fastify: FastifyInstance) {
   // Get all users
-  fastify.get('/users', async (request, reply) => {
+  fastify.get('/', async (request, reply) => {
     // This would typically fetch from database
     return {
       users: [
@@ -25,7 +25,7 @@ export async function userRoutes(fastify: FastifyInstance) {
   })
 
   // Get user by ID
-  fastify.get('/users/:id', async (request, reply) => {
+  fastify.get('/:id', async (request, reply) => {
     try {
       const { id } = getUserParamsSchema.parse(request.params)
       
@@ -46,7 +46,7 @@ export async function userRoutes(fastify: FastifyInstance) {
   })
 
   // Create new user
-  fastify.post('/users', async (request, reply) => {
+  fastify.post('/', async (request, reply) => {
     try {
       const userData = createUserSchema.parse(request.body)
       
@@ -69,7 +69,7 @@ export async function userRoutes(fastify: FastifyInstance) {
   })
 
   // Update user
-  fastify.put('/users/:id', async (request, reply) => {
+  fastify.put('/:id', async (request, reply) => {
     try {
       const { id } = getUserParamsSchema.parse(request.params)
       const userData = createUserSchema.partial().parse(request.body)
@@ -90,7 +90,7 @@ export async function userRoutes(fastify: FastifyInstance) {
   })
 
   // Delete user
-  fastify.delete('/users/:id', async (request, reply) => {
+  fastify.delete('/:id', async (request, reply) => {
     try {
       const { id } = getUserParamsSchema.parse(request.params)
       
