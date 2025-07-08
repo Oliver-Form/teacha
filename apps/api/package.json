@@ -1,0 +1,33 @@
+{
+  "name": "@yourcrm/api",
+  "scripts": {
+    "dev": "tsx server.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "turbo": {
+    "dependsOn": [
+      "^build"
+    ],
+    "outputs": [
+      "dist/**"
+    ]
+  },
+  "version": "1.0.0",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@prisma/client": "^6.11.1",
+    "fastify": "^5.4.0",
+    "zod": "^3.25.75"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.10",
+    "prisma": "^6.11.1",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  }
+}
