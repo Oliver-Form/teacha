@@ -26,6 +26,8 @@
   "author": "",
   "license": "ISC",
   "description": "",
+
+
   "dependencies": {
     "@fastify/autoload": "^6.3.1",
     "@fastify/jwt": "^9.1.0",

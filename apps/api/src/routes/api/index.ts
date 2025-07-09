@@ -1,7 +1,2 @@
-import { FastifyInstance } from 'fastify'
 
-export default async function (fastify: FastifyInstance) {
-  fastify.get('/', async (request, reply) => {
-    return { message: 'Hello from Fastify API!' }
-  })
-}
+// This file was blocking route autoloading. It is now intentionally left blank.
