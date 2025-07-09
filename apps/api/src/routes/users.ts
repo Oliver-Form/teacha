@@ -1,6 +1,8 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import bcrypt from 'bcryptjs'
 import { PrismaClient } from '../generated/prisma'
+import { requireAuth } from '../middleware/auth'
 
 const prisma = new PrismaClient()
 
@@ -8,6 +10,7 @@ const prisma = new PrismaClient()
 const createUserSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email format'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
   age: z.number().min(0).optional(),
 })
 
@@ -16,11 +19,21 @@ const getUserParamsSchema = z.object({
 })
 
 export default async function (fastify: FastifyInstance) {
-  // Get all users
-  fastify.get('/', async (request, reply) => {
+  // Get all users (protected)
+  fastify.get('/', {
+    preHandler: requireAuth
+  }, async (request, reply) => {
     try {
       const users = await prisma.user.findMany({
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          age: true,
+          createdAt: true,
+          updatedAt: true
+        }
       })
       return { users }
     } catch (error) {
@@ -29,13 +42,23 @@ export default async function (fastify: FastifyInstance) {
     }
   })
 
-  // Get user by ID
-  fastify.get('/:id', async (request, reply) => {
+  // Get user by ID (protected)
+  fastify.get('/:id', {
+    preHandler: requireAuth
+  }, async (request, reply) => {
     try {
       const { id } = getUserParamsSchema.parse(request.params)
       
       const user = await prisma.user.findUnique({
-        where: { id }
+        where: { id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          age: true,
+          createdAt: true,
+          updatedAt: true
+        }
       })
       
       if (!user) {
@@ -54,13 +77,29 @@ export default async function (fastify: FastifyInstance) {
     }
   })
 
-  // Create new user
-  fastify.post('/', async (request, reply) => {
+  // Create new user (admin only - protected)
+  fastify.post('/', {
+    preHandler: requireAuth
+  }, async (request, reply) => {
     try {
       const userData = createUserSchema.parse(request.body)
       
+      // Hash password
+      const hashedPassword = await bcrypt.hash(userData.password, 10)
+      
       const newUser = await prisma.user.create({
-        data: userData
+        data: {
+          ...userData,
+          password: hashedPassword
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          age: true,
+          createdAt: true,
+          updatedAt: true
+        }
       })
       
       reply.status(201)
@@ -80,15 +119,31 @@ export default async function (fastify: FastifyInstance) {
     }
   })
 
-  // Update user
-  fastify.put('/:id', async (request, reply) => {
+  // Update user (protected)
+  fastify.put('/:id', {
+    preHandler: requireAuth
+  }, async (request, reply) => {
     try {
       const { id } = getUserParamsSchema.parse(request.params)
       const userData = createUserSchema.partial().parse(request.body)
       
+      // If password is being updated, hash it
+      const updateData = { ...userData }
+      if (userData.password) {
+        updateData.password = await bcrypt.hash(userData.password, 10)
+      }
+      
       const updatedUser = await prisma.user.update({
         where: { id },
-        data: userData
+        data: updateData,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          age: true,
+          createdAt: true,
+          updatedAt: true
+        }
       })
       
       return updatedUser
@@ -107,8 +162,10 @@ export default async function (fastify: FastifyInstance) {
     }
   })
 
-  // Delete user
-  fastify.delete('/:id', async (request, reply) => {
+  // Delete user (protected)
+  fastify.delete('/:id', {
+    preHandler: requireAuth
+  }, async (request, reply) => {
     try {
       const { id } = getUserParamsSchema.parse(request.params)
       

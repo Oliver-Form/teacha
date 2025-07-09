@@ -1,12 +1,14 @@
 import Fastify, { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import path from 'path'
+import 'dotenv/config'
 
 // Environment configuration schema
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('3001').transform(Number),
   HOST: z.string().default('localhost'),
+  JWT_SECRET: z.string().min(1, 'JWT_SECRET is required'),
 })
 
 // Parse and validate environment variables
@@ -39,6 +41,11 @@ fastify.addHook('onRequest', async (request, reply) => {
 // Handle preflight requests
 fastify.options('*', async (request, reply) => {
   reply.send()
+})
+
+// Register JWT plugin
+fastify.register(import('@fastify/jwt'), {
+  secret: env.JWT_SECRET
 })
 
 // Register autoload for routes
