@@ -1,5 +1,8 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { PrismaClient } from '../generated/prisma'
+
+const prisma = new PrismaClient()
 
 // User-related schemas
 const createUserSchema = z.object({
@@ -15,12 +18,14 @@ const getUserParamsSchema = z.object({
 export default async function (fastify: FastifyInstance) {
   // Get all users
   fastify.get('/', async (request, reply) => {
-    // This would typically fetch from database
-    return {
-      users: [
-        { id: '1', name: 'John Doe', email: 'john@example.com' },
-        { id: '2', name: 'Jane Smith', email: 'jane@example.com' },
-      ]
+    try {
+      const users = await prisma.user.findMany({
+        orderBy: { createdAt: 'desc' }
+      })
+      return { users }
+    } catch (error) {
+      reply.status(500)
+      return { error: 'Failed to fetch users' }
     }
   })
 
@@ -29,19 +34,23 @@ export default async function (fastify: FastifyInstance) {
     try {
       const { id } = getUserParamsSchema.parse(request.params)
       
-      // This would typically fetch from database
-      if (id === '1') {
-        return { id: '1', name: 'John Doe', email: 'john@example.com' }
+      const user = await prisma.user.findUnique({
+        where: { id }
+      })
+      
+      if (!user) {
+        reply.status(404)
+        return { error: 'User not found' }
       }
       
-      reply.status(404)
-      return { error: 'User not found' }
+      return user
     } catch (error) {
       if (error instanceof z.ZodError) {
         reply.status(400)
         return { error: 'Invalid user ID', details: error.errors }
       }
-      throw error
+      reply.status(500)
+      return { error: 'Failed to fetch user' }
     }
   })
 
@@ -50,12 +59,9 @@ export default async function (fastify: FastifyInstance) {
     try {
       const userData = createUserSchema.parse(request.body)
       
-      // This would typically save to database
-      const newUser = {
-        id: Math.random().toString(36).substr(2, 9),
-        ...userData,
-        createdAt: new Date().toISOString()
-      }
+      const newUser = await prisma.user.create({
+        data: userData
+      })
       
       reply.status(201)
       return newUser
@@ -64,7 +70,13 @@ export default async function (fastify: FastifyInstance) {
         reply.status(400)
         return { error: 'Validation failed', details: error.errors }
       }
-      throw error
+      // Handle unique constraint violation (email already exists)
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+        reply.status(400)
+        return { error: 'Email already exists' }
+      }
+      reply.status(500)
+      return { error: 'Failed to create user' }
     }
   })
 
@@ -74,18 +86,24 @@ export default async function (fastify: FastifyInstance) {
       const { id } = getUserParamsSchema.parse(request.params)
       const userData = createUserSchema.partial().parse(request.body)
       
-      // This would typically update in database
-      return {
-        id,
-        ...userData,
-        updatedAt: new Date().toISOString()
-      }
+      const updatedUser = await prisma.user.update({
+        where: { id },
+        data: userData
+      })
+      
+      return updatedUser
     } catch (error) {
       if (error instanceof z.ZodError) {
         reply.status(400)
         return { error: 'Validation failed', details: error.errors }
       }
-      throw error
+      // Handle user not found
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+        reply.status(404)
+        return { error: 'User not found' }
+      }
+      reply.status(500)
+      return { error: 'Failed to update user' }
     }
   })
 
@@ -94,7 +112,10 @@ export default async function (fastify: FastifyInstance) {
     try {
       const { id } = getUserParamsSchema.parse(request.params)
       
-      // This would typically delete from database
+      await prisma.user.delete({
+        where: { id }
+      })
+      
       reply.status(204)
       return
     } catch (error) {
@@ -102,7 +123,14 @@ export default async function (fastify: FastifyInstance) {
         reply.status(400)
         return { error: 'Invalid user ID', details: error.errors }
       }
-      throw error
+      // Handle user not found
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+        reply.status(404)
+        return { error: 'User not found' }
+      }
+      reply.status(500)
+      return { error: 'Failed to delete user' }
     }
   })
 }
+// thats kinda 

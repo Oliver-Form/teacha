@@ -68,6 +68,10 @@ next-env.d.ts
 prisma/migrations/
 .env
 
+# SQLite database files
+*.db
+*.db-journal
+
 # Vercel
 .vercel
 
