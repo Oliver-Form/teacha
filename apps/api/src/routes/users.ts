@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { PrismaClient } from '../generated/prisma'
-import { requireAuth } from '../middleware/auth'
+import { requireAuth, requireRole } from '../middleware/auth'
 
 const prisma = new PrismaClient()
 
@@ -79,7 +79,7 @@ export default async function (fastify: FastifyInstance) {
 
   // Create new user (admin only - protected)
   fastify.post('/', {
-    preHandler: requireAuth
+    preHandler: requireRole('admin')
   }, async (request, reply) => {
     try {
       const userData = createUserSchema.parse(request.body)
@@ -162,9 +162,9 @@ export default async function (fastify: FastifyInstance) {
     }
   })
 
-  // Delete user (protected)
+  // Delete user (admin only - protected)
   fastify.delete('/:id', {
-    preHandler: requireAuth
+    preHandler: requireRole('admin')
   }, async (request, reply) => {
     try {
       const { id } = getUserParamsSchema.parse(request.params)
@@ -190,4 +190,4 @@ export default async function (fastify: FastifyInstance) {
     }
   })
 }
-// thats kinda 
+// thats kinda

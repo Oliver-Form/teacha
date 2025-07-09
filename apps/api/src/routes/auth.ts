@@ -11,6 +11,7 @@ const registerSchema = z.object({
   email: z.string().email('Invalid email format'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   age: z.number().min(0).optional(),
+  role: z.enum(['user', 'admin']).optional()
 })
 
 const loginSchema = z.object({
@@ -41,13 +42,15 @@ export default async function (fastify: FastifyInstance) {
       const newUser = await prisma.user.create({
         data: {
           ...userData,
-          password: hashedPassword
+          password: hashedPassword,
+          role: userData.role || 'user',
         },
         select: {
           id: true,
           name: true,
           email: true,
           age: true,
+          role: true,
           createdAt: true,
           updatedAt: true
         }
