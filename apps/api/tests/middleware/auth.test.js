@@ -1,5 +1,4 @@
 
-
 const Fastify = require('fastify');
 const fastifyJwt = require('@fastify/jwt');
 const { requireAuth, optionalAuth, requireRole } = require('../../src/middleware/auth');

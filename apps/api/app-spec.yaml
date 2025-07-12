@@ -1,0 +1,47 @@
+name: teacha-api
+region: nyc3
+services:
+- name: api
+  source_dir: /apps/api
+  github:
+    repo: Oliver-Form/teacha  # Your actual GitHub repo
+    branch: main
+    deploy_on_push: true
+  dockerfile_path: apps/api/Dockerfile
+  build_command: |
+    cd apps/api
+    npm ci
+    npx prisma generate
+    npm run build
+  run_command: |
+    cd apps/api
+    npx prisma migrate deploy
+    npm start
+  environment_slug: node-js
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  http_port: 3001
+  routes:
+  - path: /
+  health_check:
+    http_path: /health
+    initial_delay_seconds: 30
+    period_seconds: 10
+    timeout_seconds: 5
+    success_threshold: 1
+    failure_threshold: 3
+  envs:
+  - key: NODE_ENV
+    value: production
+  - key: PORT
+    value: "3001"
+  - key: HOST
+    value: "0.0.0.0"
+  - key: DATABASE_URL
+    value: "postgresql://username:password@host:port/database?sslmode=require"
+    type: SECRET
+  - key: JWT_SECRET
+    value: "your-jwt-secret-here"
+    type: SECRET
+  - key: FRONTEND_URL
+    value: "https://your-frontend-domain.com"
