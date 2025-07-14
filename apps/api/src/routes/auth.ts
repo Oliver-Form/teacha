@@ -1,7 +1,8 @@
+
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
-import { PrismaClient } from '../generated/prisma'
+import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -59,7 +60,8 @@ export default async function (fastify: FastifyInstance) {
       // Generate JWT token
       const token = fastify.jwt.sign({ 
         userId: newUser.id,
-        email: newUser.email 
+        email: newUser.email,
+        role: newUser.role
       })
       
       reply.status(201)
@@ -104,7 +106,8 @@ export default async function (fastify: FastifyInstance) {
       // Generate JWT token
       const token = fastify.jwt.sign({ 
         userId: user.id,
-        email: user.email 
+        email: user.email,
+        role: user.role
       })
       
       return {
@@ -140,7 +143,7 @@ export default async function (fastify: FastifyInstance) {
     }
   }, async (request, reply) => {
     try {
-      const { userId } = request.user as { userId: string; email: string }
+      const { userId } = request.user as { userId: string; role: string }
       
       const user = await prisma.user.findUnique({
         where: { id: userId },

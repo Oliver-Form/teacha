@@ -1,6 +1,6 @@
-const { FastifyRequest, FastifyReply } = require('fastify');
+import { FastifyRequest, FastifyReply } from 'fastify'
 
-async function requireAuth(request, reply) {
+export async function requireAuth(request: FastifyRequest, reply: FastifyReply) {
   try {
     await request.jwtVerify()
   } catch (err) {
@@ -8,7 +8,7 @@ async function requireAuth(request, reply) {
   }
 }
 
-async function optionalAuth(request, reply) {
+export async function optionalAuth(request: FastifyRequest, reply: FastifyReply) {
   try {
     await request.jwtVerify()
   } catch (err) {
@@ -16,11 +16,11 @@ async function optionalAuth(request, reply) {
   }
 }
 
-function requireRole(role) {
-  return async function (request, reply) {
+export function requireRole(role: string) {
+  return async function (request: FastifyRequest, reply: FastifyReply) {
     try {
       await request.jwtVerify()
-      const user = request.user
+      const user = request.user as { userId: string; role: string }
       if (!user || user.role !== role) {
         reply.status(403).send({ error: 'Forbidden: insufficient role' })
       }
@@ -29,5 +29,3 @@ function requireRole(role) {
     }
   }
 }
-
-module.exports = { requireAuth, optionalAuth, requireRole };

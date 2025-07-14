@@ -68,20 +68,20 @@ curl -s "$API_URL/ping" | jq . || echo "❌ Ping failed"
 
 # Register a test user
 echo "Testing user registration..."
-REGISTER_RESPONSE=$(curl -s -X POST "$API_URL/auth/register" \
+REGISTER_RESPONSE=$(curl -s -X POST "$API_URL/register" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
     "password": "testpassword123",
     "name": "Test User",
-    "role": "USER"
+    "role": "user"
   }')
 
 echo "Registration response: $REGISTER_RESPONSE"
 
 # Login
 echo "Testing user login..."
-LOGIN_RESPONSE=$(curl -s -X POST "$API_URL/auth/login" \
+LOGIN_RESPONSE=$(curl -s -X POST "$API_URL/login" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -98,14 +98,14 @@ if [ ! -z "$TOKEN" ] && [ "$TOKEN" != "null" ]; then
     
     # Test protected endpoint
     echo "Testing protected endpoint..."
-    PROFILE_RESPONSE=$(curl -s "$API_URL/auth/profile" \
+    PROFILE_RESPONSE=$(curl -s "$API_URL/me" \
       -H "Authorization: Bearer $TOKEN")
     
     echo "Profile response: $PROFILE_RESPONSE"
     
     # Test users endpoint
     echo "Testing users endpoint..."
-    USERS_RESPONSE=$(curl -s "$API_URL/users" \
+    USERS_RESPONSE=$(curl -s "$API_URL/" \
       -H "Authorization: Bearer $TOKEN")
     
     echo "Users response: $USERS_RESPONSE"
@@ -122,3 +122,4 @@ echo "1. Run: ./deploy-to-do.sh"
 echo "2. Configure GitHub secrets"
 echo "3. Push to main branch"
 echo ""
+# 
