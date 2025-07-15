@@ -17,12 +17,14 @@ describe('Auth Routes Integration', () => {
   })
 
   beforeEach(async () => {
-    // Clean database before each test
-    await prisma.enrollment.deleteMany()
-    await prisma.lesson.deleteMany()
-    await prisma.course.deleteMany()
-    await prisma.user.deleteMany()
-    await prisma.tenant.deleteMany()
+    // Clean database before each test using transaction for safety
+    await prisma.$transaction([
+      prisma.enrollment.deleteMany(),
+      prisma.lesson.deleteMany(),
+      prisma.course.deleteMany(),
+      prisma.user.deleteMany(),
+      prisma.tenant.deleteMany()
+    ])
   })
 
   afterAll(async () => {

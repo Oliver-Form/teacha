@@ -53,6 +53,7 @@ export default async function (fastify: FastifyInstance) {
           name: true,
           email: true,
           role: true,
+          tenantId: true,
           createdAt: true,
           updatedAt: true
         }
@@ -62,7 +63,8 @@ export default async function (fastify: FastifyInstance) {
       const token = fastify.jwt.sign({ 
         userId: newUser.id,
         email: newUser.email,
-        role: newUser.role
+        role: newUser.role,
+        tenantId: newUser.tenantId
       })
       
       reply.status(201)
@@ -108,7 +110,8 @@ export default async function (fastify: FastifyInstance) {
       const token = fastify.jwt.sign({ 
         userId: user.id,
         email: user.email,
-        role: user.role
+        role: user.role,
+        tenantId: user.tenantId
       })
       
       return {
