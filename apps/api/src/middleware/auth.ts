@@ -16,13 +16,21 @@ export async function optionalAuth(request: FastifyRequest, reply: FastifyReply)
   }
 }
 
-export function requireRole(role: string) {
+export function requireRole(roles: string | string[]) {
   return async function (request: FastifyRequest, reply: FastifyReply) {
     try {
       await request.jwtVerify()
-      const user = request.user as { userId: string; role: string }
-      if (!user || user.role !== role) {
+      const user = request.user as { userId: string; role: string; tenantId?: string }
+      
+      if (!user) {
+        reply.status(401).send({ error: 'Unauthorized - Valid token required' })
+        return
+      }
+      
+      const allowedRoles = Array.isArray(roles) ? roles : [roles]
+      if (!allowedRoles.includes(user.role)) {
         reply.status(403).send({ error: 'Forbidden: insufficient role' })
+        return
       }
     } catch (err) {
       reply.status(401).send({ error: 'Unauthorized - Valid token required' })

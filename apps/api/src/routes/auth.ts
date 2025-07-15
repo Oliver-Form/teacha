@@ -11,8 +11,8 @@ const registerSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email format'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  age: z.number().min(0).optional(),
-  role: z.enum(['user', 'admin']).optional()
+  tenantId: z.string().min(1, 'Tenant ID is required'),
+  role: z.enum(['STUDENT', 'INSTRUCTOR', 'ADMIN', 'TENANT_OWNER']).optional()
 })
 
 const loginSchema = z.object({
@@ -42,15 +42,16 @@ export default async function (fastify: FastifyInstance) {
       // Create user
       const newUser = await prisma.user.create({
         data: {
-          ...userData,
+          name: userData.name,
+          email: userData.email,
           password: hashedPassword,
-          role: userData.role || 'user',
+          tenantId: userData.tenantId,
+          role: userData.role || 'STUDENT',
         },
         select: {
           id: true,
           name: true,
           email: true,
-          age: true,
           role: true,
           createdAt: true,
           updatedAt: true
@@ -116,7 +117,7 @@ export default async function (fastify: FastifyInstance) {
           id: user.id,
           name: user.name,
           email: user.email,
-          age: user.age,
+          role: user.role,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt
         },
@@ -151,7 +152,7 @@ export default async function (fastify: FastifyInstance) {
           id: true,
           name: true,
           email: true,
-          age: true,
+          role: true,
           createdAt: true,
           updatedAt: true
         }
